@@ -1,6 +1,7 @@
+// manifest.json
 {
   "manifest_version": 3,
-  "name": "Mouse Movement Detector",
+  "name": "You Are An Idiot",
   "version": "1.0",
   "permissions": [
     "tabs",
@@ -13,9 +14,9 @@
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "icon16.png",
-      "48": "icon48.png",
-      "128": "icon128.png"
+      "16": "Activate.png",
+      "48": "Activate.png",
+      "128": "Activate.png"
     }
   },
   "content_scripts": [
@@ -25,12 +26,14 @@
     }
   ]
 }
+
+// popup.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mouse Movement Detector</title>
+    <title>You Are An Idiot</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -39,32 +42,42 @@
     <script src="popup.js"></script>
 </body>
 </html>
+
+// popup.js
 let isActive = false;
 
+// Toggle button functionality
 document.getElementById('toggle').addEventListener('click', () => {
     isActive = !isActive;
     chrome.storage.local.set({ isActive });
     document.getElementById('toggle').innerText = isActive ? 'Turn Off' : 'Turn On';
 });
+
+// Initialize the state on installation
 chrome.runtime.onInstalled.addListener(() => {
     chrome.storage.local.set({ isActive: false });
 });
+
+// Get the initial state from storage
+chrome.storage.local.get('isActive', (data) => {
+    isActive = data.isActive;
+    document.getElementById('toggle').innerText = isActive ? 'Turn Off' : 'Turn On';
+});
+
+// content.js
 let isActive = false;
 let audio = new Audio(chrome.runtime.getURL('You Are A Idiot For 1 hour.mp3'));
 audio.loop = true;
 
+// Get the initial state from storage
 chrome.storage.local.get('isActive', (data) => {
     isActive = data.isActive;
 });
 
+// Mouse movement event listener
 document.addEventListener('mousemove', () => {
     if (isActive) {
-        chrome.tabs.query({}, (tabs) => {
-            tabs.forEach(tab => {
-                chrome.tabs.remove(tab.id);
-            });
-        });
-
+        // Create and display the GIF container
         const gifContainer = document.createElement('div');
         gifContainer.style.position = 'fixed';
         gifContainer.style.top = '0';
@@ -76,16 +89,12 @@ document.addEventListener('mousemove', () => {
         gifContainer.innerHTML = `<img src="${chrome.runtime.getURL('YAAI.gif')}" style="width:100%; height:auto;">`;
         document.body.appendChild(gifContainer);
 
+        // Play the audio
         audio.play();
-
-        window.addEventListener('beforeunload', (event) => {
-            event.preventDefault();
-            event.returnValue = '';
-            audio.play();
-        });
     }
 });
 
+// Keyboard shortcut to stop the audio and clear the GIF
 document.addEventListener('keydown', (event) => {
     if (event.ctrlKey && event.key === 'g') {
         isActive = false;
@@ -93,3 +102,31 @@ document.addEventListener('keydown', (event) => {
         document.body.innerHTML = ''; // Clear the GIF
     }
 });
+
+// Listen for changes in the active state
+chrome.storage.onChanged.addListener((changes) => {
+    if (changes.isActive) {
+        isActive = changes.isActive.newValue;
+    }
+});
+
+// background.js
+// Currently empty, but can be used for future background tasks
+
+// style.css
+body {
+    font-family: Arial, sans-serif;
+    width: 200px;
+    padding: 10px;
+}
+
+h1 {
+    font-size: 16px;
+    margin: 0;
+}
+
+button {
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
