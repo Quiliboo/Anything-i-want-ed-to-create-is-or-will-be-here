@@ -1,0 +1,28 @@
+// manifest.json
+{
+  "manifest_version": 3,
+  "name": "You Are An Idiot",
+  "version": "1.0",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "Activate.png",
+      "48": "Activate.png",
+      "128": "Activate.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}
