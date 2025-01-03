@@ -1,0 +1,95 @@
+{
+  "manifest_version": 3,
+  "name": "Mouse Movement Detector",
+  "version": "1.0",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mouse Movement Detector</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Mouse Movement Detector</h1>
+    <button id="toggle">Turn On</button>
+    <script src="popup.js"></script>
+</body>
+</html>
+let isActive = false;
+
+document.getElementById('toggle').addEventListener('click', () => {
+    isActive = !isActive;
+    chrome.storage.local.set({ isActive });
+    document.getElementById('toggle').innerText = isActive ? 'Turn Off' : 'Turn On';
+});
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.storage.local.set({ isActive: false });
+});
+let isActive = false;
+let audio = new Audio(chrome.runtime.getURL('You Are A Idiot For 1 hour.mp3'));
+audio.loop = true;
+
+chrome.storage.local.get('isActive', (data) => {
+    isActive = data.isActive;
+});
+
+document.addEventListener('mousemove', () => {
+    if (isActive) {
+        chrome.tabs.query({}, (tabs) => {
+            tabs.forEach(tab => {
+                chrome.tabs.remove(tab.id);
+            });
+        });
+
+        const gifContainer = document.createElement('div');
+        gifContainer.style.position = 'fixed';
+        gifContainer.style.top = '0';
+        gifContainer.style.left = '0';
+        gifContainer.style.width = '100%';
+        gifContainer.style.height = '100%';
+        gifContainer.style.zIndex = '9999';
+        gifContainer.style.backgroundColor = 'white';
+        gifContainer.innerHTML = `<img src="${chrome.runtime.getURL('YAAI.gif')}" style="width:100%; height:auto;">`;
+        document.body.appendChild(gifContainer);
+
+        audio.play();
+
+        window.addEventListener('beforeunload', (event) => {
+            event.preventDefault();
+            event.returnValue = '';
+            audio.play();
+        });
+    }
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.ctrlKey && event.key === 'g') {
+        isActive = false;
+        audio.pause();
+        document.body.innerHTML = ''; // Clear the GIF
+    }
+});
